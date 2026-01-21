@@ -171,60 +171,39 @@ const Portfolio = () => {
       [name]: value
     }));
   };
-
- const handleSubmitQuote = async (e) => {
+const handleSubmitQuote = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
 
   try {
-    // EmailJS Configuration - USE ENVIRONMENT VARIABLES
     const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_eb2qnf7';
     const templateID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_52tr5fq';
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || 'DkbkyqTjeHcGL1x7-';
 
-    // Prepare email template parameters
-    const templateParams = {
-      to_name: 'Skyreti Team',
-      from_name: formData.name,
-      from_email: formData.email,
-      // Add ALL form data you want to receive
-      company: formData.company || '',
-      phone: formData.phone || '',
-      service: formData.service || '',
-      budget: formData.budget || '',
-      message: formData.message || '',
-      date: new Date().toLocaleDateString()
-    };
-
-    // Send email using send method (NOT init)
-    const result = await emailjs.send(
+    // Use the form element directly
+    const form = e.target;
+    
+    const result = await emailjs.sendForm(
       serviceID,
       templateID,
-      templateParams,
+      form,
       publicKey
     );
 
     console.log('Email sent successfully:', result);
     alert('Thank you! Your quote request has been sent.');
     
-    // Reset form after successful submission
-    setFormData({
-      name: '',
-      email: '',
-      company: '',
-      phone: '',
-      service: '',
-      budget: '',
-      message: ''
-    });
-
+    // Reset form
+    form.reset();
+    
   } catch (error) {
     console.error('Failed to send email:', error);
-    alert('Sorry, there was an error sending your request. Please try again or contact us directly.');
+    alert('Sorry, there was an error. Please try again.');
   } finally {
     setIsSubmitting(false);
   }
 };
+ 
       // Fallback to mailto if EmailJS fails
       const emailBody = `
 New Quote Request from Skyreti Website:
