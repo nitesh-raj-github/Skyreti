@@ -172,87 +172,59 @@ const Portfolio = () => {
     }));
   };
 
-  const handleSubmitQuote = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+ const handleSubmitQuote = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      // EmailJS Configuration
-      const serviceID = 'service_eb2qnf7';
-      const templateID = 'template_52tr5fq';
-      const publicKey = 'DkbkyqTjeHcGL1x7-';
+  try {
+    // EmailJS Configuration - USE ENVIRONMENT VARIABLES
+    const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_eb2qnf7';
+    const templateID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_52tr5fq';
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || 'DkbkyqTjeHcGL1x7-';
 
-      // Initialize EmailJS
-      emailjs.init(publicKey);
+    // Prepare email template parameters
+    const templateParams = {
+      to_name: 'Skyreti Team',
+      from_name: formData.name,
+      from_email: formData.email,
+      // Add ALL form data you want to receive
+      company: formData.company || '',
+      phone: formData.phone || '',
+      service: formData.service || '',
+      budget: formData.budget || '',
+      message: formData.message || '',
+      date: new Date().toLocaleDateString()
+    };
 
-      // Prepare email template parameters
-      const templateParams = {
-        to_name: 'Skyreti Team',
-        from_name: formData.name,
-        from_email: formData.email,
-        phone: formData.phone,
-        company: formData.company || 'Not provided',
-        category: formData.category,
-        package: formData.package,
-        budget: formData.budget,
-        timeline: formData.timeline,
-        requirements: formData.requirements,
-        reply_to: formData.email,
-        subject: `New Quote Request: ${formData.category} - ${formData.package}`,
-        message: `
-📋 **Contact Details:**
-• Name: ${formData.name}
-• Email: ${formData.email}
-• Phone: ${formData.phone}
-• Company: ${formData.company || 'Not provided'}
+    // Send email using send method (NOT init)
+    const result = await emailjs.send(
+      serviceID,
+      templateID,
+      templateParams,
+      publicKey
+    );
 
-🎯 **Project Details:**
-• Category: ${formData.category}
-• Package: ${formData.package}
-• Budget: ${formData.budget}
-• Timeline: ${formData.timeline}
+    console.log('Email sent successfully:', result);
+    alert('Thank you! Your quote request has been sent.');
+    
+    // Reset form after successful submission
+    setFormData({
+      name: '',
+      email: '',
+      company: '',
+      phone: '',
+      service: '',
+      budget: '',
+      message: ''
+    });
 
-📝 **Requirements:**
-${formData.requirements}
-
----
-Submitted on: ${new Date().toLocaleString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          dateStyle: 'full',
-          timeStyle: 'long'
-        })}
-        `.trim()
-      };
-
-      // Send email using EmailJS
-      const response = await emailjs.send(serviceID, templateID, templateParams);
-      
-      console.log('Email sent successfully!', response.status, response.text);
-      
-      // Success handling
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-
-      // Reset form after success
-      setTimeout(() => {
-        setShowQuoteForm(false);
-        setSubmitSuccess(false);
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          company: '',
-          category: '',
-          package: '',
-          budget: '',
-          timeline: '',
-          requirements: '',
-        });
-      }, 3000);
-
-    } catch (error) {
-      console.error('Error submitting quote:', error);
-      
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    alert('Sorry, there was an error sending your request. Please try again or contact us directly.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
       // Fallback to mailto if EmailJS fails
       const emailBody = `
 New Quote Request from Skyreti Website:
